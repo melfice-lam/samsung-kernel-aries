@@ -28,6 +28,7 @@ busybox mount -t ext4 /dev/lvpool/userdata /data
 busybox mount -t yaffs2 /dev/block/mtdblock3 /cache
 
 image=/stage1/ramdisk.img
+bootmode=system
 
 busybox echo "starting bootmode detection..."
 busybox echo "command line:"
@@ -42,6 +43,7 @@ if busybox test -e /cache/.startrecovery ||
 
 	busybox rm -fr /cache/.startrecovery
 	image=/stage1/ramdisk-recovery.img
+	bootmode=recovery
 
 	# disable lpm
 	busybox echo 0 > /sys/class/power_supply/battery/charging_mode_booting
@@ -61,6 +63,7 @@ elif ! busybox test -e /system/build.prop ; then
 	fi
 
 	image=/stage1/ramdisk-recovery.img
+	bootmode=recovery
 
 	# disable lpm
 	busybox echo 0 > /sys/class/power_supply/battery/charging_mode_booting
@@ -83,7 +86,9 @@ bigmem=0
 			if busybox [ "$bigmem" -eq 1 ] || busybox [ "$bigmem" -eq 2 ] || busybox [ "$bigmem" -eq 3 ] ; then
 				busybox echo $bigmem > /sys/kernel/bigmem/enable
     				busybox umount /data
+				if busybox [ "$bootmode" = "system" ] ; then
 				/system/bin/toolbox reboot
+				fi
 			fi
 		fi
 	fi
